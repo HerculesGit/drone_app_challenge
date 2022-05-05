@@ -1,0 +1,1 @@
+const kAssetsImages = 'assets/images';
