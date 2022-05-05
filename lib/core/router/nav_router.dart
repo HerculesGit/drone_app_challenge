@@ -10,4 +10,6 @@ class NavRouter {
         MaterialPageRoute(builder: (context) => page),
         (Route<dynamic> route) => false);
   }
+
+  static back(BuildContext context) => Navigator.pop(context);
 }

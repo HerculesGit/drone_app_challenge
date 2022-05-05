@@ -1,13 +1,23 @@
 import 'package:drone_app_challenge/core/models/drone.model.dart';
+import 'package:drone_app_challenge/core/router/nav_router.dart';
 import 'package:drone_app_challenge/core/styles.dart';
 import 'package:drone_app_challenge/core/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import 'widgets/drone_property_widget.dart';
+
+class DroneController extends GetxController {
+  var pageIndex = 1.obs;
+
+  changePageIndex(int index) => pageIndex.value = index;
+}
 
 class DroneDetailsScreen extends StatelessWidget {
   final DroneModel droneModel;
+  final controller = Get.put(DroneController());
 
-  const DroneDetailsScreen({Key? key, required this.droneModel})
-      : super(key: key);
+  DroneDetailsScreen({Key? key, required this.droneModel}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +39,7 @@ class DroneDetailsScreen extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: kDefaultMargin),
-              child: _buildBackArrow(),
+              child: _buildBackArrow(context),
             ),
             // const SizedBox(width: kDefaultMargin),
             _buildDroneBasicInfo(),
@@ -38,12 +48,18 @@ class DroneDetailsScreen extends StatelessWidget {
         const SizedBox(height: kLargeMargin),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: kLargeMargin),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildTabBarPage(title: "Specifications", isCurrentPage: true),
-              _buildTabBarPage(title: "Flight History"),
-            ],
+          child: Obx(
+            () => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildTabBarPage(
+                    title: "Specifications",
+                    isCurrentPage: controller.pageIndex.value == 0),
+                _buildTabBarPage(
+                    title: "Flight History",
+                    isCurrentPage: controller.pageIndex.value == 1),
+              ],
+            ),
           ),
         ),
         Expanded(
@@ -53,26 +69,30 @@ class DroneDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBackArrow() {
-    return Container(
-      padding: const EdgeInsets.all(kDefaultMargin),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: kBackgroundButtonColor, width: 2.0),
-      ),
+  Widget _buildBackArrow(BuildContext context) {
+    return GestureDetector(
+      onTap: ()=> NavRouter.back(context),
       child: Container(
-        padding: const EdgeInsets.all(kSmallMargin),
-        decoration: const BoxDecoration(
-          color: kBlackColor,
+        padding: const EdgeInsets.all(kDefaultMargin),
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
+          border: Border.all(color: kBackgroundButtonColor, width: 2.0),
         ),
-        child: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
+        child: Container(
+          padding: const EdgeInsets.all(kSmallMargin),
+          decoration: const BoxDecoration(
+            color: kBlackColor,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white),
+        ),
       ),
     );
   }
 
   Widget _buildPages(BuildContext context) {
     return PageView(
+      onPageChanged: (index) => controller.changePageIndex(index),
       children: [
         _buildSpecificationPage(droneModel.specification),
         Container(),
@@ -130,12 +150,12 @@ class DroneDetailsScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  _buildProperty(
+                  DronePropertyWidget(
                       icon: Icons.camera_alt,
                       title: "Video Quality",
                       subtitle: specification.videoQuality),
 
-                  _buildProperty(
+                  DronePropertyWidget(
                       icon: Icons.compare_arrows_rounded,
                       title: "Transmission",
                       subtitle: specification.transmission),
@@ -146,11 +166,11 @@ class DroneDetailsScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildProperty(
+                  DronePropertyWidget(
                       icon: Icons.whatshot,
                       title: "Flight Time",
                       subtitle: specification.flightTime),
-                  _buildProperty(
+                  DronePropertyWidget(
                       icon: Icons.videocam,
                       title: "Hyperlapse",
                       subtitle: specification.hyperlapse),
@@ -161,43 +181,11 @@ class DroneDetailsScreen extends StatelessWidget {
             ],
           ),
         ),
-        Flexible(child: Image.asset(droneModel.imageUrl)),
+        Expanded(child: Image.asset(droneModel.imageUrl)),
         const SizedBox(height: kLargeMargin),
         PrimaryButton(text: 'Fly Now', onPressed: () {}),
         const SizedBox(height: kDefaultMargin),
       ],
-    );
-  }
-
-  Widget _buildProperty(
-      {required IconData icon,
-      required String title,
-      required String subtitle}) {
-    return Expanded(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: kBackgroundButtonColor,
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Icon(icon, color: Colors.black),
-          ),
-          const SizedBox(width: 8.0),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: kSmallTextStyle),
-              const SizedBox(height: 4.0),
-              Text(subtitle,
-                  style:
-                      kNormalTextStyle.copyWith(fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }
