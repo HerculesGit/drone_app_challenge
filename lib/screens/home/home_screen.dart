@@ -1,14 +1,57 @@
 import 'package:drone_app_challenge/core/paths.dart';
-import 'package:drone_app_challenge/core/router/nav_router.dart';
 import 'package:drone_app_challenge/core/styles.dart';
 import 'package:drone_app_challenge/screens/base_scroll_screen.dart';
-import 'package:drone_app_challenge/screens/drone_details/drone_details_screen.dart';
+import 'package:drone_app_challenge/screens/home/widgets/popular_drone_widget.dart';
+import 'package:drone_app_challenge/screens/home/widgets/search_field_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:get/get.dart';
 
 import '../../core/models/drone.model.dart';
+import 'widgets/arrows_widget.dart';
+
+class HomeController extends GetxController {
+  final scrollController = ScrollController();
+
+  /// width of the drone at ListView.builder position
+  double pieceWidth = 100.0;
+  var currentIndex = 0.obs;
+
+  void setCurrentIndex(int index) {
+    currentIndex.value = index;
+  }
+
+  void setPieceWidth(double containerWidth) {
+    pieceWidth = containerWidth;
+  }
+
+  @override
+  void onInit() {
+    scrollController.addListener(() {
+      final metrics = scrollController.offset;
+      final result = metrics ~/ pieceWidth;
+
+      final scrollingToRight = scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse;
+
+      if (scrollingToRight && result > currentIndex.value ||
+          !scrollingToRight && result < currentIndex.value) {
+        setCurrentIndex(result);
+      }
+    });
+    super.onInit();
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+}
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  HomeScreen({Key? key}) : super(key: key);
+  final HomeController controller = Get.put(HomeController());
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +79,9 @@ class HomeScreen extends StatelessWidget {
               style: kTitleTextStyle),
         ),
         const SizedBox(height: kLargeMargin),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: kDefaultMargin),
-          child: _buildSearchField(),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: kDefaultMargin),
+          child: SearchFieldWidget(),
         ),
         const SizedBox(height: kLargeMargin),
         Padding(
@@ -72,21 +115,37 @@ class HomeScreen extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          // int index = -1;
           return Stack(
             fit: StackFit.expand,
             children: [
               ListView.builder(
+                controller: controller.scrollController,
                 itemCount: droneModelsMock.length,
                 scrollDirection: Axis.horizontal,
                 shrinkWrap: true,
                 itemBuilder: (_, index) =>
                     _buildDrone(context, droneModelsMock[index], index),
               ),
-              Positioned(
+
+              // SingleChildScrollView(
+              //   controller: controller.scrollController,
+              //   // itemCount: droneModelsMock.length,
+              //   scrollDirection: Axis.horizontal,
+              //   // shrinkWrap: true,
+              //   // itemBuilder: (_, index) =>
+              //   //     _buildDrone(context, droneModelsMock[index], index),
+              //   child: Row(
+              //     children: droneModelsMock.map((e) {
+              //       index++;
+              //       return _buildDrone(context, droneModelsMock[index], index);
+              //     }).toList(),
+              //   ),
+              // ),
+              const Positioned(
                 bottom: 0,
                 right: kDefaultMargin,
-                child: _buildLeftRightArrow(context,
-                    turnOnLeftArrow: false, turnOnRightArrow: true),
+                child: ArrowsWidget(turnOnRight: true),
               ),
             ],
           );
@@ -96,99 +155,18 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildDrone(BuildContext context, DroneModel drone, int index) {
-    final isFirstDrone = index == 0;
-    final containerWidth = MediaQuery.of(context).size.width / 1.8;
-    double marginLeft = isFirstDrone ? kDefaultMargin : 0;
+    return Obx(() {
+      final isFirstDroneAtList = controller.currentIndex.value == index;
+      final popularDroneWidth = MediaQuery.of(context).size.width / 1.8;
 
-    return Container(
-      width: isFirstDrone ? null : containerWidth,
-      margin: EdgeInsets.only(
-        left: marginLeft,
-      ),
-      padding: EdgeInsets.only(
-        bottom: isFirstDrone ? 0 : kDefaultMargin * 3,
-        right: kDefaultMargin,
-      ),
-      child: GestureDetector(
-        onTap: () {
-          NavRouter.to(context, page: DroneDetailsScreen(droneModel: drone));
-        },
-        child: Stack(
-          // fit: StackFit.passthrough,
-          alignment: Alignment.center,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                  color: kBlackColor,
-                  borderRadius: BorderRadius.circular(15.0)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: kDefaultMargin),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        const SizedBox(height: kDefaultMargin),
-                        const Icon(Icons.star, color: kAccentColor),
-                        const SizedBox(width: 4.0),
-                        Text(
-                          '4.5',
-                          style: kSubTitleTextStyle.copyWith(
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: kDefaultMargin),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Opacity(
-                      opacity: isFirstDrone ? 0 : 1,
-                      child: Image.asset(drone.imageUrl,
-                          fit: BoxFit.cover,
-                          width: isFirstDrone
-                              ? null
-                              : MediaQuery.of(context).size.width),
-                    ),
-                  ),
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: kDefaultMargin),
-                    child: Text(drone.name,
-                        style: kSubTitleTextStyle.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        )),
-                  ),
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: kDefaultMargin),
-                    child: Text(
-                      drone.desc,
-                      style: kSmallTextStyle.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: kDefaultMargin),
-                ],
-              ),
-            ),
-            if (isFirstDrone)
-              Image.asset(
-                drone.imageUrl,
-                width: containerWidth + 50,
-                // height: MediaQuery.of(context).size.width * 0.8,
-              ),
-          ],
-        ),
-      ),
-    );
+      controller.setPieceWidth(popularDroneWidth);
+
+      return PopularDroneWidget(
+        drone: drone,
+        isFirstDroneAtList: isFirstDroneAtList,
+        width: popularDroneWidth,
+      );
+    });
   }
 
   Widget _buildHeader() {
@@ -237,109 +215,6 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
       child: const Icon(Icons.notifications),
-    );
-  }
-
-  Widget _buildSearchField() {
-    return Container(
-      height: 60.0,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 6.0),
-              decoration: BoxDecoration(
-                color: kBackgroundButtonColor,
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: const TextField(
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search, color: Colors.black),
-                  hintText: "Search drone",
-                  enabled: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: kDefaultMargin,
-                    vertical: kDefaultMargin,
-                  ),
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: kDefaultMargin),
-          _buildSendIcon(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSendIcon() {
-    const iconSize = 32.0;
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(kDefaultMargin),
-          decoration: BoxDecoration(
-              color: kAccentColor,
-              borderRadius: BorderRadius.circular(
-                8.0,
-              )),
-          child:
-              const Icon(Icons.whatshot, color: Colors.white, size: iconSize),
-        ),
-        Positioned(
-          right: 0.0,
-          child: _buildRod(iconSize * 0.8),
-        ),
-        Positioned(
-          left: 0.0,
-          child: _buildRod(iconSize * 0.8),
-        )
-      ],
-    );
-  }
-
-  Widget _buildRod(double height) => Container(
-        color: Colors.white,
-        height: height,
-        width: 2.0,
-      );
-
-  Widget _buildLeftRightArrow(
-    BuildContext context, {
-    required bool turnOnLeftArrow,
-    required bool turnOnRightArrow,
-  }) {
-    const disabledColor = Color(0xFFD3D4D5);
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6.0),
-          decoration: BoxDecoration(
-            color: turnOnLeftArrow ? kAccentColor : disabledColor,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.arrow_back_ios_outlined,
-            color: Colors.white,
-            size: 20.0,
-          ),
-        ),
-        const SizedBox(width: kDefaultMargin),
-        Container(
-          padding: const EdgeInsets.all(6.0),
-          decoration: BoxDecoration(
-            color: turnOnRightArrow ? kAccentColor : disabledColor,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.arrow_forward_ios_outlined,
-            color: Colors.white,
-            size: 20.0,
-          ),
-        ),
-      ],
     );
   }
 }

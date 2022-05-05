@@ -57,7 +57,7 @@ class DroneFeatureScreen extends StatelessWidget {
           PrimaryButton(
               text: 'Getting Started',
               onPressed: () {
-                NavRouter.toOffAll(context, page: const HomeScreen());
+                NavRouter.toOffAll(context, page: HomeScreen());
               }),
           const SizedBox(height: kDefaultMargin),
         ],

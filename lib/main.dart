@@ -1,7 +1,6 @@
-import 'package:drone_app_challenge/screens/drone_details/drone_details_screen.dart';
 import 'package:drone_app_challenge/screens/drone_feature/drone_feature_screen.dart';
-import 'package:drone_app_challenge/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +11,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
