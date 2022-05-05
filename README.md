@@ -2,15 +2,7 @@
 
 Drone App Challenge
 
-## Getting Started
+<!--  -->
+See more details <a target="_blank" href="https://www.uplabs.com/posts/drone-app-challenge-0cf73266-02b2-4f70-b038-adc69f6b14f4">here</a>
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+![preview](https://user-images.githubusercontent.com/31658548/166847734-749fad6c-2d1c-43bf-a5d8-f399570187ed.png)
